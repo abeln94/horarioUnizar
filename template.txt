@@ -1,0 +1,52 @@
+# Configuration file for unizarHorario.py, by Abel Naya
+
+# Line-comments start with '#', anything on a line after the first '#' will be omitted
+# Categories start with '>', don't change them (TITLE, YEAR, SEMESTER, SUBJECTS and TIMETABLE)
+# empty lines are skipped, add as much as you want
+
+
+
+>TITLE # calendar title
+Horario Unizar
+
+
+
+>YEAR # current year (start of period)
+2018
+
+
+
+>SEMESTER # semester (1 or 2)
+1
+
+
+
+>SUBJECTS # list of subjects
+# must be introduced in the format:
+# id;TITLE;DESCRIPTION;COLOR
+# where:
+# - 'id' is a unique identifier
+# - 'TITLE' is a string wich will be set as the title of the event
+# - 'DESCRIPTION' is a string wich will be set as the description of the event
+# example:
+# subject1;My subject;An awesome subject
+
+subject1;My subject;An awesome subject
+
+
+
+>TIMETABLE # list of elements of the schedule
+# must be introduced in the format:
+# DAY;DAYTYPE;START;END;subject
+# where:
+# - 'DAY' is the day of the week: 'l' for Monday, 'm' for Tuesday, 'x' for Wednesday, 'j' for Thursday or 'v' for Friday
+# - 'DAYTYPE' specify if the event is for weeks a ('a'), weeks b 'b' or unespecified ('x'). Can be combined (example: events that need to happen in all weeks must have 'abx', events that need to happen only in weeks a or weeks b, but not on unespecified weeks, must have 'ab')
+# - 'START' is the start time in the format 'HH:MM' (24h)
+# - 'END' is the end time in the format 'HH:MM' (24h)
+# - 'subject' is the 'id' of one of the previously defined subjects
+# example:
+# l;abx;12:00;14:00;subject1
+
+l;abx;12:00;14:00;subject1
+
+
