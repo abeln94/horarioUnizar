@@ -23,7 +23,7 @@ CALENDARS = {
 	'days_a' : 'eina.unizar.es_hlti3ac2pou7knidr6e6267g4s@group.calendar.google.com',
 	'days_b' : 'eina.unizar.es_ri3mten96cc0s8am0hm080bi94@group.calendar.google.com',
 	'holidays' : 'eina.unizar.es_nvgat6f556c48fmtk7llb5i5l0@group.calendar.google.com',
-	'exams' : 'eina.unizar.es_8g43cd660rntvu09n32g4hsonk@group.calendar.google.com', #currently unused
+	'exams' : 'eina.unizar.es_8g43cd660rntvu09n32g4hsonk@group.calendar.google.com',
 	'evaluation' : 'eina.unizar.es_9vuatq1d533o3aoknsej9vbiv8@group.calendar.google.com',
 }
 
@@ -89,6 +89,7 @@ class BatchService:
 	def __init__(self, service):
 		self.service = service
 		self.elements = 0
+		self.batch = None
 		
 	def add(self, element):
 		if self.elements == 0:
@@ -101,9 +102,10 @@ class BatchService:
 			self.execute()
 			
 	def execute(self):
-		self.batch.execute()
-		self.batch = None
-		self.elements = 0
+		if self.batch is not None:
+			self.batch.execute()
+			self.batch = None
+			self.elements = 0
 		
 # runs a petition and returns ALL 'items' (multiple petitions may be sent). Using YIELD
 def getAllItems(function, **params):
@@ -115,7 +117,7 @@ def getAllItems(function, **params):
 			yield item
 			
 #######################################
-		
+
 # Returns the list of non-holiday days and its type
 def getDays(service, startDay, endDay):
 	days = {}
@@ -135,10 +137,15 @@ def getDays(service, startDay, endDay):
 		timeMax=endDay.addSecond().toString(),
 		singleEvents=True,
 	)
+	
 	for event in events:
-		date = MyDate(string=event['start']['date'])
-		if date in days:
-			del days[date]
+		eventIni = MyDate(string=event['start']['date'])
+		eventEnd = MyDate(string=event['end']['date']).substractDay()
+		day = eventIni.substractDay()
+		while day.isNot(eventEnd):
+			day = day.addDay()
+			if day in days:
+				del days[day]
 			
 	# finally update weekday and set A, B 
 	for calendar in ['days_a','days_b']:
@@ -215,7 +222,7 @@ def getCalendarId(service, title, startDay, endDay):
 	calendars = getAllItems(service.calendarList().list)
 	#search existing calendar
 	for calendar in calendars:
-		if calendar.get('description',"") == DESCRIPTION:
+		if calendar.get('summary',"") == title:
 			calendarId = calendar['id']
 			
 			#remove	all events
@@ -245,6 +252,26 @@ def getCalendarId(service, title, startDay, endDay):
 		print("[INFO] calendar created")
 	
 	return calendarId
+	
+	
+	
+# Adds the official calendars to the account, if they are not found
+def addCalendars(service):
+	ids = [id for id in CALENDARS.values()]
+	
+	calendars = getAllItems(service.calendarList().list)
+	#search existing calendar
+	for calendar in calendars:
+		if calendar['id'] in ids:
+			ids.remove(calendar['id'])
+
+	batchService = BatchService(service)
+	for id in ids:
+		batchService.add( service.calendarList().insert(body={
+			'id': id,
+		}))
+	batchService.execute()
+	
 	
 	
 # parse the file and load the raw configuration
@@ -359,7 +386,8 @@ def parseConfig(configuration):
 			valid = False
 			
 		#append entry
-		data['timetable'][values[0]].append(values[1:])
+		if valid:
+			data['timetable'][values[0]].append(values[1:])
 		
 	
 	if valid:
@@ -393,6 +421,8 @@ def main(filename):
 	startDay, endDay = getPeriod(service, data['year'], data['semester'])
 	
 	days = getDays(service, startDay, endDay)
+	
+	addCalendars(service)
 	
 	calendarId = getCalendarId(service, data['title'], startDay, endDay)
 	
