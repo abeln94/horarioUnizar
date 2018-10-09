@@ -1,3 +1,7 @@
+# [DISCONTINUED: this script is now obsolete and the implementation was rewrited in Google Scripts. You can check the new version here: https://sites.google.com/view/scripthorarioeina/]
+
+
+
 # Create custom calendar Script
 
 This is a python script to create a custom calendar with the events specified in a configurations file. The events are placed according to days a, days b, changed days, holidays, etc etc etc. (Information extracted from the official eina calendars).
